@@ -172,9 +172,12 @@ body {
 .hud-brand-title {
   pointer-events: auto;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   font-family: 'Orbitron', sans-serif;
   font-style: italic;
-  font-size: 39px;
+  font-size: 38px;
   font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -185,6 +188,15 @@ body {
           drop-shadow(0 0 18px rgba(255, 170, 68, 0.25));
   padding: 2px 4px;
   transition: filter 0.16s ease, transform 0.16s ease;
+}
+
+.hud-brand-icon {
+  -webkit-text-fill-color: initial;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.65));
+  flex-shrink: 0;
 }
 
 .hud-brand-title:hover {
@@ -881,426 +893,1163 @@ body {
     0 0 28px rgba(0, 0, 0, 0.78);
 }
 
-/* Hidden on Desktop 16:9 Viewports — Only shown in Mobile Responsive View */
+/* Base Mobile Touch Controls: hidden by default on desktop mouse viewports */
 .mobile-touch-controls {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  padding: 0 max(12px, env(safe-area-inset-right, 12px)) 0 max(12px, env(safe-area-inset-left, 12px));
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 35;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.mobile-touch-controls.hidden {
   display: none !important;
 }
 
+/* Display touch controls on any touch device or screen <= 1024px */
+@media (pointer: coarse), (max-width: 1024px) {
+  .mobile-touch-controls:not(.hidden) {
+    display: flex !important;
+  }
+}
+
+.has-touch .mobile-touch-controls:not(.hidden) {
+  display: flex !important;
+}
+
+.mobile-ctrl-cluster {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mobile-ctrl-btn {
+  position: relative;
+  width: clamp(60px, 17vw, 84px);
+  height: clamp(52px, 14vw, 68px);
+  padding: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 27, 46, 0.90) 0%,
+    rgba(8, 14, 26, 0.96) 100%
+  );
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #f4f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.05s ease,
+    background 0.06s ease,
+    border-color 0.06s ease,
+    box-shadow 0.06s ease,
+    color 0.06s ease;
+}
+
+.mobile-ctrl-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.mobile-ctrl-svg {
+  width: clamp(22px, 6vw, 28px);
+  height: clamp(22px, 6vw, 28px);
+  stroke: currentColor;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.mobile-ctrl-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(8.5px, 2.2vw, 10px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: rgba(235, 243, 255, 0.88);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+/* Center Utility Cluster (Respawn, Camera, Autopilot) */
+.mobile-util-cluster {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  pointer-events: auto;
+  margin-bottom: 2px;
+}
+
+.mobile-ctrl-util {
+  width: clamp(42px, 11vw, 54px);
+  height: clamp(42px, 10.5vw, 50px);
+  border-radius: 11px;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.85) 0%,
+    rgba(6, 11, 22, 0.92) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+}
+
+.mobile-ctrl-svg-sm {
+  width: clamp(16px, 4.2vw, 19px);
+  height: clamp(16px, 4.2vw, 19px);
+  stroke: currentColor;
+}
+
+.mobile-ctrl-label-sm {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(6.5px, 1.7vw, 8px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: rgba(203, 213, 225, 0.9);
+}
+
+.mobile-ctrl-util:active,
+.mobile-ctrl-util.is-pressed {
+  background: rgba(0, 240, 255, 0.28);
+  border-color: #00f0ff;
+  color: #ffffff;
+  transform: scale(0.94);
+}
+
+/* Left/Right Steer Buttons (A / D) */
+.mobile-ctrl-steer {
+  border-color: rgba(255, 210, 125, 0.38);
+  color: #ffe2a8;
+}
+
+.mobile-ctrl-steer.is-pressed {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 190, 76, 0.45) 0%,
+    rgba(255, 138, 36, 0.32) 100%
+  );
+  border-color: rgba(255, 214, 130, 1.0);
+  color: #ffffff;
+  box-shadow:
+    0 0 22px rgba(255, 180, 60, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transform: translateY(2px) scale(0.95);
+}
+
+/* Accelerate Button (W) */
+.mobile-ctrl-accel {
+  border-color: rgba(56, 232, 255, 0.44);
+  color: #64f0ff;
+}
+
+.mobile-ctrl-accel.is-pressed {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 216, 255, 0.48) 0%,
+    rgba(0, 140, 210, 0.34) 100%
+  );
+  border-color: rgba(110, 245, 255, 1.0);
+  color: #ffffff;
+  box-shadow:
+    0 0 24px rgba(0, 224, 255, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  transform: translateY(2px) scale(0.95);
+}
+
+/* Brake Button (S) */
+.mobile-ctrl-brake {
+  border-color: rgba(255, 110, 98, 0.42);
+  color: #ff8e85;
+}
+
+.mobile-ctrl-brake.is-pressed {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 82, 68, 0.50) 0%,
+    rgba(195, 34, 30, 0.35) 100%
+  );
+  border-color: rgba(255, 136, 126, 1.0);
+  color: #ffffff;
+  box-shadow:
+    0 0 24px rgba(255, 82, 68, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transform: translateY(2px) scale(0.95);
+}
+
+.mobile-ctrl-btn.is-pressed .mobile-ctrl-label {
+  color: #ffffff;
+}
+
 /* ============================================================================
-   MOBILE & 9:16 PORTRAIT VIEWPORT OPTIMIZATIONS (Desktop 16:9 untouched)
+   MOBILE VIEWPORT & ORIENTATION OPTIMIZATIONS
    ============================================================================ */
 @media (max-width: 768px), (max-aspect-ratio: 4/5) {
-  /* Top and bottom edge scrims for the single-row top HUD and bottom touch controls */
+  /* Corner vignette edge scrims */
   #hud-corner-vignette {
     background: linear-gradient(
       180deg,
-      rgba(2, 4, 10, 0.76) 0%,
-      rgba(2, 4, 10, 0.38) 10%,
-      rgba(2, 4, 10, 0) 22%,
-      rgba(2, 4, 10, 0) 78%,
-      rgba(2, 4, 10, 0.42) 90%,
-      rgba(2, 4, 10, 0.80) 100%
+      rgba(2, 4, 10, 0.78) 0%,
+      rgba(2, 4, 10, 0.35) 12%,
+      rgba(2, 4, 10, 0) 24%,
+      rgba(2, 4, 10, 0) 74%,
+      rgba(2, 4, 10, 0.40) 88%,
+      rgba(2, 4, 10, 0.82) 100%
     );
   }
 
-  /* Single-row top HUD layout containing Map (Left), KM/H Speedo (Center), Lap/Time (Right) pinned 24px from top */
+  /* Keep HUD full-screen container with clean flex layout */
   #hud-root {
-    top: 24px;
-    bottom: auto;
-    height: auto;
-    flex-direction: row;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    flex-wrap: nowrap;
+    padding: max(8px, env(safe-area-inset-top, 8px)) max(8px, env(safe-area-inset-right, 8px)) 0 max(8px, env(safe-area-inset-left, 8px));
+  }
+
+  .hud-top-bar {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    pointer-events: none;
     gap: 6px;
-    padding: 0 10px;
   }
 
-  .hud-top-bar,
-  .hud-settings-anchor,
-  .hud-top-right-row,
-  .hud-bottom-bar:not(.hidden) {
-    display: contents;
+  .hud-top-left-stack {
+    display: flex !important;
+    flex-direction: column;
+    gap: 2px;
+    pointer-events: auto;
   }
 
-  /* Hide Desk Racer brand title & mute button on mobile so only the 3 HUD components sit in the top row */
-  .hud-top-left-stack,
-  #hud-brand-logo,
-  #btn-mute-sound {
-    display: none !important;
+  .hud-brand-title {
+    display: flex !important;
+    font-size: clamp(14px, 4vw, 18px);
+    gap: 6px;
   }
 
-  /* 1. Left Slot: Scaled 3D Racetrack Minimap */
-  .hud-minimap-widget {
-    order: 1;
-    flex: 0 0 auto;
+  .hud-brand-icon {
+    width: clamp(20px, 5.5vw, 26px);
+    height: clamp(20px, 5.5vw, 26px);
   }
 
-  #minimap-canvas {
-    width: clamp(86px, 25.5vw, 120px);
-    height: clamp(56px, 16.58vw, 78px);
+  .hud-author-subtitle {
+    display: flex !important;
+    font-size: clamp(7.5px, 2.2vw, 9.5px);
+    padding: 2px 7px;
+    letter-spacing: 0.05em;
   }
 
-  /* 2. Center Slot: Scaled Angled Segmented Speedometer & KM/H Readout */
-  .hud-speedo-gauge {
-    order: 2;
-    flex: 0 0 auto;
-    width: clamp(100px, 29vw, 136px);
-    height: clamp(47px, 13.68vw, 64px);
+  .hud-top-right-row {
+    display: flex !important;
+    align-items: center;
+    gap: 5px;
+    pointer-events: auto;
   }
 
-  .speedo-readout-group {
-    right: 5px;
-    bottom: 2px;
-  }
-
-  .speedo-unit-label {
-    font-size: clamp(7px, 2vw, 9.5px);
-    margin-bottom: 0;
-  }
-
-  .speedo-digits {
-    font-size: clamp(21px, 6.2vw, 29px);
-    line-height: 0.9;
-  }
-
-  /* 3. Right Slot: Scaled Lap Counter & Timer */
   .hud-lap-widget {
-    order: 3;
-    flex: 0 0 auto;
-    padding: 0;
-    text-align: right;
+    padding: 3px 8px;
+    border-radius: 8px;
   }
 
   .hud-lap-header {
-    font-size: clamp(10px, 2.8vw, 13px);
+    font-size: clamp(9.5px, 2.7vw, 12px);
     margin-bottom: 1px;
   }
 
   .hud-lap-timer {
-    font-size: clamp(15px, 4.4vw, 20.5px);
-    line-height: 1.02;
+    font-size: clamp(13px, 3.8vw, 17px);
+    line-height: 1.05;
   }
 
-  .hud-lap-split {
-    font-size: clamp(8.5px, 2.3vw, 11px);
-    margin-top: 2px;
+  .hud-settings-btn,
+  .hud-mute-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
   }
 
-  /* Welcome & Controls Modal Optimized for 9:16 Mobile Viewport */
-  .welcome-dialog-card {
-    width: min(92vw, 384px);
-    max-height: 90dvh;
+  /* Bottom bar sits above the touch controls */
+  .hud-bottom-bar {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: clamp(68px, 16.5vh, 88px);
+    pointer-events: none;
+  }
+
+  .hud-minimap-widget {
+    pointer-events: auto;
+  }
+
+  #minimap-canvas {
+    width: clamp(76px, 22vw, 105px);
+    height: clamp(50px, 14.5vw, 68px);
+  }
+
+  .hud-speedo-gauge {
+    width: clamp(90px, 26vw, 120px);
+    height: clamp(42px, 12vw, 56px);
+    pointer-events: auto;
+  }
+
+  .speedo-readout-group {
+    right: 4px;
+    bottom: 2px;
+  }
+
+  .speedo-unit-label {
+    font-size: clamp(6.5px, 1.8vw, 8.5px);
+  }
+
+  .speedo-digits {
+    font-size: clamp(18px, 5.2vw, 24px);
+    line-height: 0.9;
+  }
+
+  /* Dialog cards on mobile portrait */
+  .welcome-dialog-card,
+  .settings-dialog-card,
+  .finish-dialog-card {
+    width: min(94vw, 400px);
+    max-height: 88dvh;
     overflow-y: auto;
-    padding: 20px 15px 18px;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 14px;
     border-radius: 14px;
   }
 
-  .welcome-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    margin-bottom: 3px;
-  }
-
   .welcome-title {
-    font-size: clamp(24px, 7vw, 31px);
-    letter-spacing: 0.05em;
-    margin-bottom: 14px;
+    font-size: clamp(22px, 6.5vw, 28px);
+    margin-bottom: 10px;
   }
 
   .welcome-controls-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 12px;
   }
 
-  .welcome-control-block {
-    padding: 11px 10px 10px;
-    border-radius: 9px;
-  }
-
-  .welcome-control-label {
-    font-size: 10.5px;
-    letter-spacing: 0.09em;
-    margin-bottom: 8px;
-  }
-
-  /* 3-Column Compact Tile Row for WASD Controls */
   .control-keys-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
-    padding: 0;
   }
 
-  .control-key-row {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    padding: 7px 4px 6px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 7px;
-    font-size: clamp(8.5px, 2.4vw, 10px);
-    letter-spacing: 0.04em;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .control-kbd-pair {
-    min-width: 0;
-    gap: 4px;
-  }
-
-  .welcome-key {
-    min-width: 26px;
-    height: 24px;
-    padding: 0 6px;
-    font-size: 11.5px;
-  }
-
-  /* 2x2 Touch-Friendly Grid for Camera Views 1-4 */
   .cam-keys-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    padding: 0;
-  }
-
-  .cam-key-row {
-    min-height: 38px;
-    padding: 5px 7px;
-    gap: 6px;
-    font-size: clamp(8.8px, 2.45vw, 10.5px);
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    background: rgba(255, 255, 255, 0.025);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .welcome-key-cyan {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 5px;
-    font-size: 11px;
-    flex-shrink: 0;
   }
 
   .welcome-start-btn {
-    width: 100%;
-    padding: 12px 16px;
-    gap: 10px;
-    transform: skewX(-8deg);
-  }
-
-  .welcome-start-btn:hover {
-    transform: skewX(-8deg) translateY(-1px) scale(1.01);
+    padding: 11px 14px;
   }
 
   .welcome-start-text {
-    font-size: clamp(14px, 4.1vw, 17px);
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-  }
-
-  .welcome-enter-kbd {
-    font-size: 10px;
-    padding: 3px 7px;
-    white-space: nowrap;
-  }
-
-  /* F1 Countdown & Finish Overlay in 9:16 Mobile View */
-  .hud-f1-countdown {
-    font-size: clamp(64px, 18vw, 84px);
-  }
-
-  .finish-dialog-card {
-    width: min(92vw, 370px);
-    padding: 22px 16px 18px;
-  }
-
-  .hud-finish-title {
-    font-size: clamp(28px, 7.5vw, 36px);
-  }
-
-  .hud-finish-time {
-    font-size: clamp(40px, 11vw, 52px);
-  }
-
-  .hud-finish-sub {
-    font-size: 11px;
-    margin-bottom: 16px;
-  }
-
-  .finish-actions-row {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .finish-action-btn {
-    width: 100%;
-    padding: 11px 16px;
-  }
-
-  .finish-action-btn .welcome-start-text {
-    font-size: clamp(13.5px, 3.8vw, 15.5px);
-  }
-
-  /* Bottom Row Mobile Touch Controls: Steer Left/Right (A/D) on Left, Accelerate/Brake (W/S) on Right */
-  .mobile-touch-controls:not(.hidden) {
-    display: flex !important;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: max(20px, env(safe-area-inset-bottom, 20px));
-    padding: 0 12px;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 25;
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
-  }
-
-  .mobile-touch-controls.hidden {
-    display: none !important;
-  }
-
-  .mobile-ctrl-cluster {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    pointer-events: auto;
-    touch-action: none;
-  }
-
-  .mobile-ctrl-btn {
-    position: relative;
-    width: clamp(64px, 18.8vw, 82px);
-    height: clamp(54px, 14.8vw, 66px);
-    padding: 0;
-    border-radius: 12px;
-    background: linear-gradient(
-      180deg,
-      rgba(16, 24, 42, 0.84) 0%,
-      rgba(8, 13, 24, 0.92) 100%
-    );
-    border: 1.5px solid rgba(255, 255, 255, 0.22);
-    box-shadow:
-      0 6px 18px rgba(0, 0, 0, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: #f4f7ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    touch-action: none;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-      transform 0.06s ease,
-      background 0.08s ease,
-      border-color 0.08s ease,
-      box-shadow 0.08s ease,
-      color 0.08s ease;
-  }
-
-  .mobile-ctrl-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    pointer-events: none;
-  }
-
-  .mobile-ctrl-svg {
-    width: clamp(22px, 6.2vw, 27px);
-    height: clamp(22px, 6.2vw, 27px);
-    stroke: currentColor;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
-  }
-
-  .mobile-ctrl-label {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(8.5px, 2.3vw, 10px);
-    font-weight: 800;
-    font-style: italic;
-    letter-spacing: 0.08em;
-    line-height: 1;
-    color: rgba(235, 243, 255, 0.88);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
-  }
-
-  /* Left/Right Steer Buttons (A / D) */
-  .mobile-ctrl-steer {
-    border-color: rgba(255, 210, 125, 0.34);
-    color: #ffe2a8;
-  }
-
-  .mobile-ctrl-steer.is-pressed {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 190, 76, 0.38) 0%,
-      rgba(255, 138, 36, 0.24) 100%
-    );
-    border-color: rgba(255, 214, 130, 0.96);
-    color: #ffffff;
-    box-shadow:
-      0 0 18px rgba(255, 180, 60, 0.48),
-      inset 0 1px 0 rgba(255, 255, 255, 0.38);
-    transform: translateY(1.5px) scale(0.95);
-  }
-
-  /* Accelerate Button (W) */
-  .mobile-ctrl-accel {
-    border-color: rgba(56, 232, 255, 0.40);
-    color: #64f0ff;
-  }
-
-  .mobile-ctrl-accel.is-pressed {
-    background: linear-gradient(
-      180deg,
-      rgba(0, 216, 255, 0.40) 0%,
-      rgba(0, 140, 210, 0.26) 100%
-    );
-    border-color: rgba(110, 245, 255, 0.98);
-    color: #ffffff;
-    box-shadow:
-      0 0 20px rgba(0, 224, 255, 0.52),
-      inset 0 1px 0 rgba(255, 255, 255, 0.42);
-    transform: translateY(1.5px) scale(0.95);
-  }
-
-  /* Brake Button (S) */
-  .mobile-ctrl-brake {
-    border-color: rgba(255, 110, 98, 0.38);
-    color: #ff8e85;
-  }
-
-  .mobile-ctrl-brake.is-pressed {
-    background: linear-gradient(
-      180deg,
-      rgba(255, 82, 68, 0.42) 0%,
-      rgba(195, 34, 30, 0.28) 100%
-    );
-    border-color: rgba(255, 136, 126, 0.98);
-    color: #ffffff;
-    box-shadow:
-      0 0 20px rgba(255, 82, 68, 0.52),
-      inset 0 1px 0 rgba(255, 255, 255, 0.38);
-    transform: translateY(1.5px) scale(0.95);
-  }
-
-  .mobile-ctrl-btn.is-pressed .mobile-ctrl-label {
-    color: #ffffff;
+    font-size: clamp(13px, 3.8vw, 16px);
   }
 }
 
+/* Landscape mobile optimization (e.g. 844x390, 896x414, 915x412) */
+@media (max-height: 520px) {
+  #hud-root {
+    padding: 4px max(10px, env(safe-area-inset-right, 10px)) 0 max(10px, env(safe-area-inset-left, 10px));
+  }
+
+  .hud-author-subtitle {
+    display: none !important; /* Hide long subtitle in compact landscape */
+  }
+
+  .hud-brand-title {
+    font-size: 13.5px;
+  }
+
+  .hud-brand-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .hud-settings-btn,
+  .hud-mute-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hud-lap-widget {
+    padding: 2px 6px;
+  }
+
+  .hud-lap-timer {
+    font-size: 13px;
+  }
+
+  .hud-bottom-bar {
+    padding-bottom: 0px;
+  }
+
+  #minimap-canvas {
+    width: 78px;
+    height: 50px;
+  }
+
+  .hud-speedo-gauge {
+    width: 86px;
+    height: 40px;
+  }
+
+  .speedo-digits {
+    font-size: 17px;
+  }
+
+  .mobile-touch-controls {
+    bottom: max(6px, env(safe-area-inset-bottom, 6px));
+  }
+
+  .mobile-ctrl-btn {
+    width: clamp(54px, 12.5vw, 70px);
+    height: clamp(44px, 11.5vh, 54px);
+    border-radius: 11px;
+  }
+
+  .mobile-ctrl-svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .mobile-ctrl-label {
+    font-size: 8px;
+  }
+
+  .mobile-ctrl-util {
+    width: clamp(38px, 9vw, 46px);
+    height: clamp(38px, 9vh, 44px);
+  }
+
+  .welcome-dialog-card,
+  .settings-dialog-card,
+  .finish-dialog-card {
+    max-height: 94dvh;
+    padding: 10px 14px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .welcome-title,
+  .settings-dialog-title,
+  .hud-finish-title {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .dev-profile-card {
+    padding: 10px 12px;
+  }
+
+  .settings-section {
+    margin-bottom: 12px;
+  }
+}
+
+/* ============================================================================
+   DEVELOPER ATTRIBUTION, SETTINGS DIALOG & MULTI-LANGUAGE SYSTEM
+   Created and Developed by DANIEL TECH, Video Game Developer
+   ============================================================================ */
+
+/* HUD Author Subtitle (Top-Left under Desk Racer title) */
+.hud-author-subtitle {
+  pointer-events: auto;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px;
+  background: rgba(8, 14, 26, 0.72);
+  border: 1px solid rgba(255, 170, 68, 0.35);
+  border-radius: 999px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd27d;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+  transition: all 0.16s ease;
+  backdrop-filter: blur(8px);
+}
+
+.hud-author-subtitle:hover {
+  background: rgba(255, 170, 68, 0.16);
+  border-color: #ffd27d;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 170, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.author-dot,
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffaa44;
+  box-shadow: 0 0 8px #ffaa44;
+  flex-shrink: 0;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Top-Right Settings Button */
+.hud-settings-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  background: rgba(8, 14, 26, 0.78);
+  border: 1px solid rgba(0, 229, 255, 0.42);
+  border-radius: 9px;
+  color: #00e5ff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.15s ease;
+  backdrop-filter: blur(10px);
+}
+
+.hud-settings-btn:hover {
+  background: rgba(0, 229, 255, 0.18);
+  border-color: #00e5ff;
+  color: #ffffff;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.82),
+    0 0 16px rgba(0, 229, 255, 0.45);
+  transform: translateY(-1px);
+}
+
+.settings-svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
+}
+
+.hud-settings-btn:hover .settings-svg {
+  transform: rotate(45deg);
+}
+
+.hud-lang-badge {
+  padding: 1.5px 5px;
+  border-radius: 4px;
+  background: rgba(0, 229, 255, 0.22);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  font-size: 10px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+/* Welcome Dialog Developer Badge */
+.welcome-author-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  margin: -10px auto 16px;
+  background: linear-gradient(90deg, rgba(255, 170, 68, 0.12) 0%, rgba(255, 210, 125, 0.06) 100%);
+  border: 1px solid rgba(255, 170, 68, 0.45);
+  border-radius: 999px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd27d;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.welcome-author-badge:hover {
+  background: rgba(255, 170, 68, 0.22);
+  border-color: #ffd27d;
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(255, 170, 68, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Welcome Dialog Language Quick Switcher */
+.welcome-lang-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.lang-row-label {
+  color: rgba(0, 229, 255, 0.75);
+  display: flex;
+  align-items: center;
+}
+
+.welcome-lang-pills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.welcome-lang-pill {
+  cursor: pointer;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.14s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.welcome-lang-pill:hover {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.55);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.welcome-lang-pill.active {
+  background: linear-gradient(90deg, rgba(0, 229, 255, 0.28) 0%, rgba(255, 170, 68, 0.22) 100%);
+  border-color: #00e5ff;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+/* Welcome Dialog Auxiliary Settings Button */
+.welcome-settings-aux-btn {
+  cursor: pointer;
+  transform: skewX(-12deg);
+  padding: 13px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-family: 'Orbitron', sans-serif;
+  font-style: italic;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: all 0.16s ease;
+}
+
+.welcome-settings-aux-btn:hover {
+  background: rgba(0, 229, 255, 0.16);
+  border-color: #00e5ff;
+  color: #00e5ff;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.35);
+  transform: skewX(-12deg) translateY(-1px);
+}
+
+/* ============================================================================
+   SETTINGS & DEVELOPER MODAL DIALOG
+   ============================================================================ */
+.settings-dialog-overlay {
+  z-index: 80;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.settings-dialog-card {
+  width: min(94vw, 680px);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 28px 32px 24px;
+  background: linear-gradient(165deg, rgba(10, 16, 30, 0.95) 0%, rgba(6, 10, 20, 0.98) 100%);
+  border: 1.5px solid rgba(0, 229, 255, 0.55);
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.95),
+    0 0 45px rgba(0, 229, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.3) rgba(0, 0, 0, 0.2);
+}
+
+.settings-dialog-card::-webkit-scrollbar {
+  width: 6px;
+}
+.settings-dialog-card::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.3);
+  border-radius: 3px;
+}
+
+.settings-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 14px;
+}
+
+.settings-title {
+  font-family: 'Orbitron', sans-serif;
+  font-style: italic;
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(95deg, #ffffff 0%, #ffe3a8 55%, #ffaa44 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
+  margin: 0;
+}
+
+.settings-close-x-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-close-x-btn:hover {
+  background: rgba(255, 59, 48, 0.25);
+  border-color: #ff3b30;
+  color: #ff3b30;
+  transform: rotate(90deg);
+}
+
+/* Settings Sections */
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  color: #00e5ff;
+  margin-bottom: 12px;
+}
+
+.settings-section-icon {
+  font-size: 15px;
+}
+
+/* Developer Profile Card (DANIEL TECH) */
+.dev-profile-card {
+  background: linear-gradient(135deg, rgba(255, 170, 68, 0.08) 0%, rgba(12, 20, 36, 0.90) 60%, rgba(0, 229, 255, 0.08) 100%);
+  border: 1.5px solid rgba(255, 170, 68, 0.55);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(255, 170, 68, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dev-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.dev-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffaa44 0%, #ff6b00 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffd27d;
+  box-shadow:
+    0 4px 14px rgba(255, 170, 68, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.dev-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+
+.dev-avatar-text {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 21px;
+  color: #0a0e18;
+}
+
+.dev-profile-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dev-official-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 170, 68, 0.22);
+  border: 1px solid #ffaa44;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffd27d;
+  width: fit-content;
+}
+
+.badge-star {
+  color: #ffd27d;
+}
+
+.dev-author-name {
+  font-family: 'Orbitron', sans-serif;
+  font-style: italic;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 14px rgba(255, 210, 125, 0.4);
+}
+
+.dev-author-role {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4cc2ff;
+  letter-spacing: 0.02em;
+}
+
+.dev-statement-box {
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid #ffaa44;
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.dev-statement-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #e5ecf6;
+  margin: 0;
+}
+
+.dev-tech-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tech-tag {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #4cc2ff;
+}
+
+/* Language Selection Grid */
+.settings-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.settings-lang-card {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.14s ease;
+  position: relative;
+}
+
+.settings-lang-card:hover {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.55);
+  transform: translateY(-1px);
+}
+
+.settings-lang-card.active {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.22) 0%, rgba(255, 170, 68, 0.16) 100%);
+  border-color: #00e5ff;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+}
+
+.lang-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lang-card-flag {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.lang-card-code {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+.settings-lang-card.active .lang-card-code {
+  color: #00e5ff;
+}
+
+.lang-card-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Settings Controls & Sliders */
+.settings-controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.settings-row-item {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 11px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.settings-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.settings-item-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.settings-item-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.settings-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.settings-slider-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #00e5ff;
+}
+
+.settings-toggle-btn {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.14s ease;
+}
+
+.settings-toggle-btn.active {
+  background: rgba(50, 215, 75, 0.2);
+  border-color: #32d74b;
+  color: #32d74b;
+  box-shadow: 0 0 10px rgba(50, 215, 75, 0.3);
+}
+
+.settings-footer-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.settings-close-btn {
+  width: 100%;
+  max-width: 320px;
+}
+
+/* Finish Signature */
+.finish-developer-signature {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #ffd27d;
+  text-shadow: 0 0 10px rgba(255, 170, 68, 0.4);
+}
+
+/* ============================================================================
+   RTL (ARABIC) SUPPORT
+   ============================================================================ */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Cairo', 'Noto Sans Arabic', 'Inter', sans-serif;
+}
+
+[dir="rtl"] .settings-header-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dev-statement-box {
+  border-left: none;
+  border-right: 3px solid #ffaa44;
+}
+
+[dir="rtl"] .dev-profile-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .dev-profile-titles {
+  text-align: right;
+}
+
+[dir="rtl"] .hud-top-left-stack {
+  align-items: flex-end;
+}
+
+[dir="rtl"] .welcome-controls-grid {
+  text-align: right;
+}
+
+[dir="rtl"] .control-key-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .cam-key-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .settings-slider-header {
+  flex-direction: row-reverse;
+}
+
+/* Responsive adjustments for Settings dialog on mobile */
+@media (max-width: 768px), (max-aspect-ratio: 4/5) {
+  .settings-dialog-card {
+    width: min(94vw, 380px);
+    padding: 20px 16px 18px;
+  }
+
+  .settings-title {
+    font-size: 24px;
+  }
+
+  .settings-lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .settings-controls-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .welcome-author-badge {
+    font-size: 9.5px;
+    padding: 4px 10px;
+  }
+
+  .welcome-settings-aux-btn {
+    transform: skewX(-8deg);
+    padding: 11px 16px;
+    font-size: 12px;
+  }
+}

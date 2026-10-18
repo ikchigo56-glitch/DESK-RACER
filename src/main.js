@@ -17,6 +17,13 @@ import { buildGoldenHourAtmosphere } from './scene/GoldenHourAtmosphere.js';
 import { buildRoomEnvironment } from './scene/RoomEnvironmentBuilder.js';
 import { createKartPhysicsController } from './physics/KartPhysicsController.js';
 import { createWebAudioSynth } from './audio/WebAudioSynth.js';
+import {
+  SUPPORTED_LANGUAGES,
+  TRANSLATIONS,
+  getStoredLanguage,
+  saveLanguage,
+  getTranslation,
+} from './i18n/translations.js';
 
 async function initApp() {
   const container = document.getElementById('canvas-container');
@@ -63,10 +70,33 @@ async function initApp() {
     }
   }
 
-  const pixelRatio = isScreenshotUrl ? 1.0 : Math.min(window.devicePixelRatio, 2.0);
+  const isMobileDevice =
+    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    (typeof window !== 'undefined' && (
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+    ));
+
+  if (isMobileDevice) {
+    document.documentElement.classList.add('has-touch');
+  }
+  window.addEventListener(
+    'touchstart',
+    () => {
+      document.documentElement.classList.add('has-touch');
+    },
+    { once: true, passive: true }
+  );
+
+  const pixelRatio = isScreenshotUrl
+    ? 1.0
+    : isMobileDevice
+    ? Math.min(window.devicePixelRatio, 1.25)
+    : Math.min(window.devicePixelRatio, 1.85);
   renderer.setPixelRatio(pixelRatio);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = isMobileDevice ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.68 + 0.08 * 1.15;
   container.appendChild(renderer.domElement);
@@ -232,7 +262,7 @@ async function initApp() {
     trackGlowIntensity: 1.00,
     micGlowIntensity: 0.85,
     bloomStrength: 0.06,
-    dofStrength: 0.35,
+    dofStrength: isMobileDevice ? 0.0 : 0.35,
     toneMappingExposure: 0.68 + 0.08 * 1.15,
     showDustMotes: false,
     droneKartScale: false,
@@ -1929,12 +1959,16 @@ async function initApp() {
     }
   }
 
+  let lastFinishTotalTime = 0;
+  let lastFinishBestLap = null;
+
   function showLapSplit(completedLapNum, lapTime) {
     if (!elLapSplit) return;
     if (lapSplitTimeout) {
       clearTimeout(lapSplitTimeout);
     }
-    elLapSplit.textContent = `LAP ${completedLapNum}  ${formatLapTimerMMSSCC(lapTime)}`;
+    const t = getTranslation(currentLangCode);
+    elLapSplit.textContent = `${t.lap} ${completedLapNum}  ${formatLapTimerMMSSCC(lapTime)}`;
     elLapSplit.classList.remove('hidden');
     lapSplitTimeout = setTimeout(() => {
       elLapSplit.classList.add('hidden');
@@ -1954,12 +1988,15 @@ async function initApp() {
 
   function showFinishOverlay(totalTime, bestLap, playAudio = true) {
     hideLapSplit();
+    lastFinishTotalTime = totalTime;
+    lastFinishBestLap = bestLap;
     if (elFinishTime) {
       elFinishTime.textContent = formatLapTimerMMSSCC(totalTime);
     }
+    const t = getTranslation(currentLangCode);
     if (elFinishSub) {
       const bestVal = bestLap != null ? bestLap : (totalTime || 0) / 3;
-      elFinishSub.textContent = `BEST LAP ${formatLapTimerMMSSCC(bestVal)}`;
+      elFinishSub.textContent = `${t.bestLap} ${formatLapTimerMMSSCC(bestVal)}`;
     }
     if (elFinishOverlay) {
       elFinishOverlay.classList.remove('hidden');
@@ -2094,8 +2131,10 @@ async function initApp() {
   }
 
   // -------------------------------------------------------------------------
-  // WELCOME DIALOG & START RACE BUTTON (SHOWN ON LAUNCH)
+  // MULTI-LANGUAGE SYSTEM & SETTINGS DIALOG (CREATED BY DANIEL TECH)
   // -------------------------------------------------------------------------
+  let currentLangCode = getStoredLanguage();
+
   const elWelcomeOverlay = document.getElementById('welcome-dialog-overlay');
   const btnWelcomeStart = document.getElementById('btn-welcome-start');
   const elWelcomeStartText = document.getElementById('welcome-start-text');
@@ -2103,6 +2142,341 @@ async function initApp() {
   const elWelcomeProgressFill = document.getElementById('welcome-btn-progress-fill');
   const btnFinishRaceAgain = document.getElementById('btn-finish-race-again');
   const btnFinishAutopilot = document.getElementById('btn-finish-autopilot');
+
+  // Settings & Attribution DOM elements
+  const elSettingsOverlay = document.getElementById('settings-dialog-overlay');
+  const btnOpenSettings = document.getElementById('btn-open-settings');
+  const btnWelcomeSettings = document.getElementById('btn-welcome-settings');
+  const btnCloseSettingsX = document.getElementById('btn-close-settings-x');
+  const btnCloseSettingsFooter = document.getElementById('btn-close-settings-footer');
+  const hudAuthorSubtitle = document.getElementById('hud-author-subtitle');
+  const welcomeAuthorBadge = document.getElementById('welcome-author-badge');
+  const welcomeLangPills = document.getElementById('welcome-lang-pills');
+  const settingsLangGrid = document.getElementById('settings-lang-grid');
+  const hudLangBadge = document.getElementById('hud-lang-badge');
+
+  // Modal Settings Controls
+  const btnSettingsToggleSound = document.getElementById('btn-settings-toggle-sound');
+  const txtSettingsSoundState = document.getElementById('txt-settings-sound-state');
+  const sliderTopSpeedModal = document.getElementById('slider-topspeed-modal');
+  const valTopSpeedModal = document.getElementById('val-topspeed-modal');
+  const sliderDofModal = document.getElementById('slider-dof-modal');
+  const valDofModal = document.getElementById('val-dof-modal');
+  const sliderSunModal = document.getElementById('slider-sun-modal');
+  const valSunModal = document.getElementById('val-sun-modal');
+
+  function showSettingsDialog() {
+    if (elSettingsOverlay) {
+      elSettingsOverlay.classList.remove('hidden');
+      syncSettingsModalValues();
+    }
+    syncMobileTouchControlsVisibility();
+  }
+
+  function hideSettingsDialog() {
+    if (elSettingsOverlay && !elSettingsOverlay.classList.contains('hidden')) {
+      elSettingsOverlay.classList.add('hidden');
+    }
+    syncMobileTouchControlsVisibility();
+  }
+
+  function syncSettingsModalValues() {
+    const isAudioOn = audioSynth.isEnabled ? audioSynth.isEnabled() : true;
+    if (btnSettingsToggleSound) {
+      btnSettingsToggleSound.classList.toggle('active', isAudioOn);
+    }
+    if (txtSettingsSoundState) {
+      const t = getTranslation(currentLangCode);
+      txtSettingsSoundState.textContent = isAudioOn ? (t.activeTag || 'ACTIF') : 'OFF';
+    }
+    if (sliderTopSpeedModal && physics.state.topSpeedMultiplier) {
+      sliderTopSpeedModal.value = String(physics.state.topSpeedMultiplier);
+      if (valTopSpeedModal) valTopSpeedModal.textContent = `${physics.state.topSpeedMultiplier.toFixed(2)}x`;
+    }
+    if (sliderDofModal && settings.dofStrength != null) {
+      sliderDofModal.value = String(settings.dofStrength);
+      if (valDofModal) valDofModal.textContent = `${settings.dofStrength.toFixed(2)}x`;
+    }
+    if (sliderSunModal && settings.sunIntensity != null) {
+      sliderSunModal.value = String(settings.sunIntensity);
+      if (valSunModal) valSunModal.textContent = `${settings.sunIntensity.toFixed(2)}x`;
+    }
+  }
+
+  function applyLanguage(langCode) {
+    if (!TRANSLATIONS[langCode]) langCode = 'fr';
+    currentLangCode = langCode;
+    saveLanguage(langCode);
+
+    const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || SUPPORTED_LANGUAGES[0];
+    const t = TRANSLATIONS[langCode];
+
+    document.documentElement.dir = langObj.dir || 'ltr';
+    document.documentElement.lang = langCode;
+
+    // HUD Elements
+    if (hudLangBadge) hudLangBadge.textContent = langCode.toUpperCase();
+    const hudAuthorText = document.getElementById('hud-author-text');
+    if (hudAuthorText) hudAuthorText.textContent = t.developerCreditShort;
+    const hudLapLabel = document.getElementById('hud-lap-label');
+    if (hudLapLabel) hudLapLabel.textContent = t.lap;
+    const hudUnitKmh = document.getElementById('hud-unit-kmh');
+    if (hudUnitKmh) hudUnitKmh.textContent = t.kmh;
+
+    // Welcome Card Elements
+    const elWelcomeEyebrow = document.getElementById('welcome-eyebrow');
+    if (elWelcomeEyebrow) elWelcomeEyebrow.textContent = t.welcomeEyebrow;
+    const welcomeAuthorText = document.getElementById('welcome-author-text');
+    if (welcomeAuthorText) welcomeAuthorText.textContent = t.developerCreditShort;
+    const welcomeCtrlLabel = document.getElementById('welcome-ctrl-label');
+    if (welcomeCtrlLabel) welcomeCtrlLabel.textContent = t.welcomeControlsLabel;
+    const txtKeyAccel = document.getElementById('txt-key-accel');
+    if (txtKeyAccel) txtKeyAccel.textContent = t.accelerate;
+    const txtKeySteer = document.getElementById('txt-key-steer');
+    if (txtKeySteer) txtKeySteer.textContent = t.steer;
+    const txtKeyBrake = document.getElementById('txt-key-brake');
+    if (txtKeyBrake) txtKeyBrake.textContent = t.brake;
+    const welcomeViewsLabel = document.getElementById('welcome-views-label');
+    if (welcomeViewsLabel) welcomeViewsLabel.textContent = t.welcomeViewsLabel;
+    const txtCam1 = document.getElementById('txt-cam-1');
+    if (txtCam1) txtCam1.textContent = t.camChase;
+    const txtCam2 = document.getElementById('txt-cam-2');
+    if (txtCam2) txtCam2.textContent = t.camCockpit;
+    const txtCam3 = document.getElementById('txt-cam-3');
+    if (txtCam3) txtCam3.textContent = t.camDesk;
+    const txtCam4 = document.getElementById('txt-cam-4');
+    if (txtCam4) txtCam4.textContent = t.camDrone;
+    const welcomeSettingsLabel = document.getElementById('welcome-settings-label');
+    if (welcomeSettingsLabel) welcomeSettingsLabel.textContent = t.settingsBtn;
+
+    // Finish Dialog Elements
+    const elFinishEyebrow = document.getElementById('hud-finish-eyebrow');
+    if (elFinishEyebrow) elFinishEyebrow.textContent = t.finishEyebrow;
+    const elFinishTitle = document.getElementById('hud-finish-title');
+    if (elFinishTitle) elFinishTitle.textContent = t.finishTitle;
+    const txtFinishRaceAgain = document.getElementById('txt-finish-race-again');
+    if (txtFinishRaceAgain) txtFinishRaceAgain.textContent = t.raceAgain;
+    const txtFinishAutopilot = document.getElementById('txt-finish-autopilot');
+    if (txtFinishAutopilot) txtFinishAutopilot.textContent = t.autopilot;
+    const finishSignature = document.getElementById('hud-finish-signature');
+    if (finishSignature) finishSignature.textContent = t.finishSignature;
+    if (elFinishSub && lastFinishTotalTime > 0) {
+      const bestVal = lastFinishBestLap != null ? lastFinishBestLap : lastFinishTotalTime / 3;
+      elFinishSub.textContent = `${t.bestLap} ${formatLapTimerMMSSCC(bestVal)}`;
+    }
+
+    // Mobile Controls
+    const txtTouchLeft = document.getElementById('txt-touch-left');
+    if (txtTouchLeft) txtTouchLeft.textContent = t.touchLeft;
+    const txtTouchRight = document.getElementById('txt-touch-right');
+    if (txtTouchRight) txtTouchRight.textContent = t.touchRight;
+    const txtTouchAccel = document.getElementById('txt-touch-accel');
+    if (txtTouchAccel) txtTouchAccel.textContent = t.touchAccel;
+    const txtTouchBrake = document.getElementById('txt-touch-brake');
+    if (txtTouchBrake) txtTouchBrake.textContent = t.touchBrake;
+    const txtTouchRespawn = document.getElementById('txt-touch-respawn');
+    if (txtTouchRespawn) txtTouchRespawn.textContent = t.touchRespawn;
+    const txtTouchCam = document.getElementById('txt-touch-cam');
+    if (txtTouchCam) txtTouchCam.textContent = t.touchCam;
+    const txtTouchAuto = document.getElementById('txt-touch-auto');
+    if (txtTouchAuto) txtTouchAuto.textContent = t.touchAuto;
+
+    // Settings Dialog Elements
+    const settingsDialogEyebrow = document.getElementById('settings-dialog-eyebrow');
+    if (settingsDialogEyebrow) settingsDialogEyebrow.textContent = `${t.brandTitle} · ${t.settingsTitle}`;
+    const settingsDialogTitle = document.getElementById('settings-dialog-title');
+    if (settingsDialogTitle) settingsDialogTitle.textContent = t.settingsTitle;
+    const txtDevSectionTitle = document.getElementById('txt-dev-section-title');
+    if (txtDevSectionTitle) txtDevSectionTitle.textContent = t.devSectionTitle;
+    const txtDevBadgeOfficial = document.getElementById('txt-dev-badge-official');
+    if (txtDevBadgeOfficial) txtDevBadgeOfficial.textContent = t.developerBadgeOfficial;
+    const txtDevName = document.getElementById('txt-dev-name');
+    if (txtDevName) txtDevName.textContent = t.developerName;
+    const txtDevRole = document.getElementById('txt-dev-role');
+    if (txtDevRole) txtDevRole.textContent = t.developerRole;
+    const txtDevStatement = document.getElementById('txt-dev-statement');
+    if (txtDevStatement) txtDevStatement.textContent = t.developerStatement;
+    const txtLangSectionTitle = document.getElementById('txt-lang-section-title');
+    if (txtLangSectionTitle) txtLangSectionTitle.textContent = t.langSectionTitle;
+    const txtGameplaySectionTitle = document.getElementById('txt-gameplay-section-title');
+    if (txtGameplaySectionTitle) txtGameplaySectionTitle.textContent = t.gameplaySectionTitle;
+    const txtOptAudio = document.getElementById('txt-opt-audio');
+    if (txtOptAudio) txtOptAudio.textContent = t.audioMuteLabel;
+    const txtOptTopspeed = document.getElementById('txt-opt-topspeed');
+    if (txtOptTopspeed) txtOptTopspeed.textContent = t.topSpeedLabel;
+    const txtOptDof = document.getElementById('txt-opt-dof');
+    if (txtOptDof) txtOptDof.textContent = t.dofLabel;
+    const txtOptSun = document.getElementById('txt-opt-sun');
+    if (txtOptSun) txtOptSun.textContent = t.sunLabel;
+    const txtCloseSettings = document.getElementById('txt-close-settings');
+    if (txtCloseSettings) txtCloseSettings.textContent = t.closeSettings;
+
+    // Update active state in Welcome quick pills
+    if (welcomeLangPills) {
+      welcomeLangPills.querySelectorAll('.welcome-lang-pill').forEach((pill) => {
+        pill.classList.toggle('active', pill.dataset.lang === langCode);
+      });
+    }
+
+    // Update active state in Settings modal cards
+    if (settingsLangGrid) {
+      settingsLangGrid.querySelectorAll('.settings-lang-card').forEach((card) => {
+        card.classList.toggle('active', card.dataset.lang === langCode);
+      });
+    }
+
+    updateWelcomeWarmupUI();
+  }
+
+  function initLanguageUI() {
+    // 1. Welcome quick pills
+    if (welcomeLangPills) {
+      welcomeLangPills.innerHTML = '';
+      SUPPORTED_LANGUAGES.forEach((lang) => {
+        const pill = document.createElement('button');
+        pill.className = `welcome-lang-pill ${lang.code === currentLangCode ? 'active' : ''}`;
+        pill.dataset.lang = lang.code;
+        pill.type = 'button';
+        pill.innerHTML = `<span>${lang.flag}</span> <span>${lang.code.toUpperCase()}</span>`;
+        pill.title = lang.name;
+        pill.addEventListener('click', (e) => {
+          e.stopPropagation();
+          applyLanguage(lang.code);
+        });
+        welcomeLangPills.appendChild(pill);
+      });
+    }
+
+    // 2. Settings modal grid
+    if (settingsLangGrid) {
+      settingsLangGrid.innerHTML = '';
+      SUPPORTED_LANGUAGES.forEach((lang) => {
+        const card = document.createElement('div');
+        card.className = `settings-lang-card ${lang.code === currentLangCode ? 'active' : ''}`;
+        card.dataset.lang = lang.code;
+        card.role = 'button';
+        card.tabIndex = 0;
+        card.innerHTML = `
+          <div class="lang-card-top">
+            <span class="lang-card-flag">${lang.flag}</span>
+            <span class="lang-card-code">${lang.code.toUpperCase()}</span>
+          </div>
+          <div class="lang-card-name">${lang.name}</div>
+        `;
+        const select = (e) => {
+          e.stopPropagation();
+          applyLanguage(lang.code);
+        };
+        card.addEventListener('click', select);
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            select(e);
+          }
+        });
+        settingsLangGrid.appendChild(card);
+      });
+    }
+
+    // Event listeners for Settings open / close
+    if (btnOpenSettings) {
+      btnOpenSettings.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSettingsDialog();
+      });
+    }
+    if (btnWelcomeSettings) {
+      btnWelcomeSettings.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSettingsDialog();
+      });
+    }
+    if (hudAuthorSubtitle) {
+      hudAuthorSubtitle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSettingsDialog();
+      });
+    }
+    if (welcomeAuthorBadge) {
+      welcomeAuthorBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSettingsDialog();
+      });
+    }
+    if (btnCloseSettingsX) {
+      btnCloseSettingsX.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideSettingsDialog();
+      });
+    }
+    if (btnCloseSettingsFooter) {
+      btnCloseSettingsFooter.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideSettingsDialog();
+      });
+    }
+    if (elSettingsOverlay) {
+      elSettingsOverlay.addEventListener('click', (e) => {
+        if (e.target === elSettingsOverlay) {
+          hideSettingsDialog();
+        }
+      });
+    }
+
+    // Settings controls events
+    if (btnSettingsToggleSound) {
+      btnSettingsToggleSound.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const on = audioSynth.toggle();
+        updateAudioButtonUI(on);
+        syncSettingsModalValues();
+      });
+    }
+
+    if (sliderTopSpeedModal) {
+      sliderTopSpeedModal.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        physics.state.topSpeedMultiplier = v;
+        if (valTopSpeedModal) valTopSpeedModal.textContent = `${v.toFixed(2)}x`;
+        if (sliderSpeed) sliderSpeed.value = String(v);
+        if (valSpeed) valSpeed.textContent = `${v.toFixed(2)}x`;
+      });
+    }
+
+    if (sliderDofModal) {
+      sliderDofModal.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        settings.dofStrength = v;
+        if (valDofModal) valDofModal.textContent = `${v.toFixed(2)}x`;
+        if (sliderDof) sliderDof.value = String(v);
+        if (valDof) valDof.textContent = `${v.toFixed(2)}x`;
+        bokehPass.enabled = v > 0.01;
+      });
+    }
+
+    if (sliderSunModal) {
+      sliderSunModal.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        settings.sunIntensity = v;
+        settings.sunbeamIntensity = v;
+        scene.environmentIntensity = 0.08 + 0.55 * v;
+        settings.toneMappingExposure = 0.68 + 0.08 * settings.lampIntensity + 0.14 * v;
+        renderer.toneMappingExposure = settings.toneMappingExposure;
+        if (valSunModal) valSunModal.textContent = `${v.toFixed(2)}x`;
+        if (sliderSun) sliderSun.value = String(v);
+        if (valSun) valSun.textContent = `${v.toFixed(2)}x`;
+        if (diorama.updateLightingMaterials) {
+          diorama.updateLightingMaterials(v, settings.lampIntensity);
+        }
+        if (roomEnv.updateRoomLighting) {
+          roomEnv.updateRoomLighting(v, settings.lampIntensity);
+        }
+      });
+    }
+
+    // Apply current language
+    applyLanguage(currentLangCode);
+  }
 
   function focusWelcomeStartButton() {
     if (isScreenshotMode) return;
@@ -2118,11 +2492,12 @@ async function initApp() {
 
   function updateWelcomeWarmupUI() {
     if (isScreenshotMode || !btnWelcomeStart) return;
+    const t = getTranslation(currentLangCode);
     if (isCircuitReady) {
       btnWelcomeStart.classList.remove('is-warming-up', 'is-queued');
       if (elWelcomeProgressFill) elWelcomeProgressFill.style.width = '100%';
-      if (elWelcomeStartText) elWelcomeStartText.textContent = 'START TIME TRIAL';
-      if (elWelcomeEnterKbd) elWelcomeEnterKbd.textContent = 'ENTER ↵';
+      if (elWelcomeStartText) elWelcomeStartText.textContent = t.startTimeTrial;
+      if (elWelcomeEnterKbd) elWelcomeEnterKbd.textContent = t.enterKey;
       focusWelcomeStartButton();
       return;
     }
@@ -2142,13 +2517,15 @@ async function initApp() {
     }
     if (elWelcomeStartText) {
       elWelcomeStartText.textContent = pendingRaceStartAfterWarmup
-        ? 'STARTING TIME TRIAL...'
-        : 'PREPARING CIRCUIT...';
+        ? t.startingTimeTrial
+        : t.preparingCircuit;
     }
     if (elWelcomeEnterKbd) {
       elWelcomeEnterKbd.textContent = `${pct}%`;
     }
   }
+
+  initLanguageUI();
 
   onCircuitWarmupProgressCallback = updateWelcomeWarmupUI;
   onCircuitReadyCallback = () => {
@@ -2191,46 +2568,78 @@ async function initApp() {
   }
 
   const elMobileTouchControls = document.getElementById('mobile-touch-controls');
-  const mobileControlButtons = elMobileTouchControls
-    ? Array.from(elMobileTouchControls.querySelectorAll('.mobile-ctrl-btn'))
-    : [];
-  const activeTouchDirs = new Set();
-  const activePointerDirs = new Map();
+  const btnTouchLeft = document.getElementById('btn-touch-left');
+  const btnTouchRight = document.getElementById('btn-touch-right');
+  const btnTouchAccel = document.getElementById('btn-touch-accel');
+  const btnTouchBrake = document.getElementById('btn-touch-brake');
+  const btnTouchRespawn = document.getElementById('btn-touch-respawn');
+  const btnTouchCam = document.getElementById('btn-touch-cam');
+  const btnTouchAutopilot = document.getElementById('btn-touch-autopilot');
 
-  function applyMobileTouchState() {
-    const allDirs = ['left', 'right', 'forward', 'backward'];
-    for (const dir of allDirs) {
-      let isPressed = activeTouchDirs.has(dir);
-      if (!isPressed) {
-        for (const pDir of activePointerDirs.values()) {
-          if (pDir === dir) {
-            isPressed = true;
-            break;
-          }
-        }
-      }
-      if (physics.setTouchKey) {
-        physics.setTouchKey(dir, isPressed);
-      }
+  const steerCluster = elMobileTouchControls
+    ? elMobileTouchControls.querySelector('.mobile-steer-cluster')
+    : null;
+  const pedalCluster = elMobileTouchControls
+    ? elMobileTouchControls.querySelector('.mobile-pedal-cluster')
+    : null;
+
+  // Active touch tracking maps: touchId/pointerId -> direction
+  const activeSteerTouches = new Map();
+  const activePedalTouches = new Map();
+
+  function updateTouchSteering() {
+    let steerDir = null;
+    for (const dir of activeSteerTouches.values()) {
+      steerDir = dir;
+      break;
     }
-    for (const btn of mobileControlButtons) {
-      const dir = btn.dataset.control;
-      const isPressed = Boolean(dir && physics.keys[dir]);
-      btn.classList.toggle('is-pressed', isPressed);
-      btn.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+    const isLeft = steerDir === 'left';
+    const isRight = steerDir === 'right';
+    if (physics.setTouchKey) {
+      physics.setTouchKey('left', isLeft);
+      physics.setTouchKey('right', isRight);
+    }
+    if (btnTouchLeft) {
+      btnTouchLeft.classList.toggle('is-pressed', isLeft);
+      btnTouchLeft.setAttribute('aria-pressed', isLeft ? 'true' : 'false');
+    }
+    if (btnTouchRight) {
+      btnTouchRight.classList.toggle('is-pressed', isRight);
+      btnTouchRight.setAttribute('aria-pressed', isRight ? 'true' : 'false');
+    }
+  }
+
+  function updateTouchPedals() {
+    let forward = false;
+    let backward = false;
+    for (const dir of activePedalTouches.values()) {
+      if (dir === 'forward') forward = true;
+      if (dir === 'backward') backward = true;
+    }
+    if (physics.setTouchKey) {
+      physics.setTouchKey('forward', forward);
+      physics.setTouchKey('backward', backward);
+    }
+    if (btnTouchAccel) {
+      btnTouchAccel.classList.toggle('is-pressed', forward);
+      btnTouchAccel.setAttribute('aria-pressed', forward ? 'true' : 'false');
+    }
+    if (btnTouchBrake) {
+      btnTouchBrake.classList.toggle('is-pressed', backward);
+      btnTouchBrake.setAttribute('aria-pressed', backward ? 'true' : 'false');
     }
   }
 
   function releaseAllMobileTouchControls() {
-    activeTouchDirs.clear();
-    activePointerDirs.clear();
+    activeSteerTouches.clear();
+    activePedalTouches.clear();
     if (physics.clearTouchKeys) {
       physics.clearTouchKeys();
     }
-    for (const btn of mobileControlButtons) {
-      btn.classList.remove('is-pressed');
-      btn.setAttribute('aria-pressed', 'false');
-    }
+    if (btnTouchLeft) btnTouchLeft.classList.remove('is-pressed');
+    if (btnTouchRight) btnTouchRight.classList.remove('is-pressed');
+    if (btnTouchAccel) btnTouchAccel.classList.remove('is-pressed');
+    if (btnTouchBrake) btnTouchBrake.classList.remove('is-pressed');
   }
 
   function syncMobileTouchControlsVisibility() {
@@ -2239,75 +2648,174 @@ async function initApp() {
       elWelcomeOverlay && !elWelcomeOverlay.classList.contains('hidden');
     const isFinishOpen =
       elFinishOverlay && !elFinishOverlay.classList.contains('hidden');
-    const shouldHide = Boolean(isWelcomeOpen || isFinishOpen);
+    const isSettingsOpen =
+      elSettingsOverlay && !elSettingsOverlay.classList.contains('hidden');
+    const shouldHide = Boolean(isWelcomeOpen || isFinishOpen || isSettingsOpen);
     elMobileTouchControls.classList.toggle('hidden', shouldHide);
     if (shouldHide) {
       releaseAllMobileTouchControls();
     }
   }
 
-  if (elMobileTouchControls && mobileControlButtons.length > 0) {
-    const updateFromTouches = (e) => {
-      if (e.cancelable) {
-        e.preventDefault();
-      }
-      activeTouchDirs.clear();
-      const touches = e.touches || [];
-      for (let i = 0; i < touches.length; i++) {
-        const t = touches[i];
-        const hitEl = document.elementFromPoint(t.clientX, t.clientY);
-        const btn = hitEl && hitEl.closest ? hitEl.closest('.mobile-ctrl-btn') : null;
-        if (btn && btn.dataset.control) {
-          activeTouchDirs.add(btn.dataset.control);
+  if (elMobileTouchControls) {
+    elMobileTouchControls.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // 1. Steering Cluster Multi-Touch (seamless thumb sliding between Left and Right)
+    if (steerCluster) {
+      const getSteerDir = (clientX) => {
+        const rect = steerCluster.getBoundingClientRect();
+        const midX = rect.left + rect.width * 0.5;
+        return clientX < midX ? 'left' : 'right';
+      };
+
+      const onSteerTouch = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const touches = e.targetTouches || [];
+        for (let i = 0; i < touches.length; i++) {
+          const t = touches[i];
+          activeSteerTouches.set(t.identifier, getSteerDir(t.clientX));
         }
-      }
-      applyMobileTouchState();
-    };
+        updateTouchSteering();
+      };
 
-    elMobileTouchControls.addEventListener('touchstart', updateFromTouches, {
-      passive: false,
-    });
-    elMobileTouchControls.addEventListener('touchmove', updateFromTouches, {
-      passive: false,
-    });
-    elMobileTouchControls.addEventListener('touchend', updateFromTouches, {
-      passive: false,
-    });
-    elMobileTouchControls.addEventListener('touchcancel', updateFromTouches, {
-      passive: false,
-    });
-    elMobileTouchControls.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-    });
+      const onSteerTouchEnd = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const remainingTouches = new Set();
+        for (let i = 0; i < e.targetTouches.length; i++) {
+          remainingTouches.add(e.targetTouches[i].identifier);
+        }
+        for (const id of Array.from(activeSteerTouches.keys())) {
+          if (!remainingTouches.has(id)) {
+            activeSteerTouches.delete(id);
+          }
+        }
+        updateTouchSteering();
+      };
 
-    for (const btn of mobileControlButtons) {
-      const dir = btn.dataset.control;
-      if (!dir) continue;
+      steerCluster.addEventListener('touchstart', onSteerTouch, { passive: false });
+      steerCluster.addEventListener('touchmove', onSteerTouch, { passive: false });
+      steerCluster.addEventListener('touchend', onSteerTouchEnd, { passive: false });
+      steerCluster.addEventListener('touchcancel', onSteerTouchEnd, { passive: false });
+    }
 
+    // 2. Pedal Cluster Multi-Touch (seamless thumb sliding between Gas and Brake)
+    if (pedalCluster) {
+      const getPedalDir = (clientX) => {
+        const rect = pedalCluster.getBoundingClientRect();
+        const midX = rect.left + rect.width * 0.5;
+        return clientX < midX ? 'forward' : 'backward';
+      };
+
+      const onPedalTouch = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const touches = e.targetTouches || [];
+        for (let i = 0; i < touches.length; i++) {
+          const t = touches[i];
+          activePedalTouches.set(t.identifier, getPedalDir(t.clientX));
+        }
+        updateTouchPedals();
+      };
+
+      const onPedalTouchEnd = (e) => {
+        if (e.cancelable) e.preventDefault();
+        const remainingTouches = new Set();
+        for (let i = 0; i < e.targetTouches.length; i++) {
+          remainingTouches.add(e.targetTouches[i].identifier);
+        }
+        for (const id of Array.from(activePedalTouches.keys())) {
+          if (!remainingTouches.has(id)) {
+            activePedalTouches.delete(id);
+          }
+        }
+        updateTouchPedals();
+      };
+
+      pedalCluster.addEventListener('touchstart', onPedalTouch, { passive: false });
+      pedalCluster.addEventListener('touchmove', onPedalTouch, { passive: false });
+      pedalCluster.addEventListener('touchend', onPedalTouchEnd, { passive: false });
+      pedalCluster.addEventListener('touchcancel', onPedalTouchEnd, { passive: false });
+    }
+
+    // 3. Pointer event fallbacks for individual buttons (for mouse testing or non-touch pointer devices)
+    const setupPointerButton = (btn, map, dir) => {
+      if (!btn) return;
       btn.addEventListener('pointerdown', (e) => {
-        if (e.pointerType === 'touch') return;
+        if (e.pointerType === 'touch') return; // Handled by touch events above
         e.preventDefault();
         e.stopPropagation();
         try {
           btn.setPointerCapture(e.pointerId);
-        } catch (_err) {
-          // Ignore pointer capture errors
-        }
-        activePointerDirs.set(e.pointerId, dir);
-        applyMobileTouchState();
+        } catch (_) {}
+        map.set(e.pointerId, dir);
+        if (map === activeSteerTouches) updateTouchSteering();
+        else updateTouchPedals();
       });
 
-      const releasePointer = (e) => {
+      const release = (e) => {
         if (e.pointerType === 'touch') return;
-        if (activePointerDirs.has(e.pointerId)) {
-          activePointerDirs.delete(e.pointerId);
-          applyMobileTouchState();
+        if (map.has(e.pointerId)) {
+          map.delete(e.pointerId);
+          if (map === activeSteerTouches) updateTouchSteering();
+          else updateTouchPedals();
         }
       };
 
-      btn.addEventListener('pointerup', releasePointer);
-      btn.addEventListener('pointercancel', releasePointer);
-      btn.addEventListener('lostpointercapture', releasePointer);
+      btn.addEventListener('pointerup', release);
+      btn.addEventListener('pointercancel', release);
+      btn.addEventListener('lostpointercapture', release);
+    };
+
+    setupPointerButton(btnTouchLeft, activeSteerTouches, 'left');
+    setupPointerButton(btnTouchRight, activeSteerTouches, 'right');
+    setupPointerButton(btnTouchAccel, activePedalTouches, 'forward');
+    setupPointerButton(btnTouchBrake, activePedalTouches, 'backward');
+
+    // 4. Center Utility Buttons (Respawn, Camera Toggle, Autopilot)
+    if (btnTouchRespawn) {
+      const doRespawn = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (physics.teleportToSector) {
+          physics.teleportToSector(physics.state.sector || 6);
+        } else if (physics.resetToStart) {
+          physics.resetToStart();
+        }
+        btnTouchRespawn.classList.add('is-pressed');
+        setTimeout(() => btnTouchRespawn.classList.remove('is-pressed'), 180);
+      };
+      btnTouchRespawn.addEventListener('click', doRespawn);
+      btnTouchRespawn.addEventListener('touchstart', doRespawn, { passive: false });
+    }
+
+    if (btnTouchCam) {
+      const doCycleCam = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const nextCam =
+          activeCameraMode === 1
+            ? 2
+            : activeCameraMode === 2
+            ? 3
+            : activeCameraMode === 3
+            ? 4
+            : 1;
+        setCameraMode(nextCam);
+        btnTouchCam.classList.add('is-pressed');
+        setTimeout(() => btnTouchCam.classList.remove('is-pressed'), 180);
+      };
+      btnTouchCam.addEventListener('click', doCycleCam);
+      btnTouchCam.addEventListener('touchstart', doCycleCam, { passive: false });
+    }
+
+    if (btnTouchAutopilot) {
+      const doToggleAuto = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        physics.setAutopilot(!physics.state.autopilot);
+        btnTouchAutopilot.classList.toggle('is-pressed', physics.state.autopilot);
+      };
+      btnTouchAutopilot.addEventListener('click', doToggleAuto);
+      btnTouchAutopilot.addEventListener('touchstart', doToggleAuto, { passive: false });
     }
 
     window.addEventListener('blur', releaseAllMobileTouchControls);
@@ -2411,6 +2919,23 @@ async function initApp() {
   window.addEventListener('keydown', (e) => {
     if (e.target && ['INPUT', 'TEXTAREA'].includes(e.target.tagName) && !e.target.readOnly) return;
     if (e.repeat) return;
+    if (e.code === 'KeyO') {
+      if (elSettingsOverlay && !elSettingsOverlay.classList.contains('hidden')) {
+        hideSettingsDialog();
+      } else {
+        showSettingsDialog();
+      }
+      return;
+    }
+    if (e.code === 'Escape') {
+      if (elSettingsOverlay && !elSettingsOverlay.classList.contains('hidden')) {
+        hideSettingsDialog();
+        return;
+      }
+    }
+    if (elSettingsOverlay && !elSettingsOverlay.classList.contains('hidden')) {
+      return;
+    }
     if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.key === 'Enter') {
       e.preventDefault();
       dismissWelcomeAndStartRace();
@@ -2687,7 +3212,9 @@ async function initApp() {
   }
 
   function animate() {
-    const dt = isScreenshotMode ? 1 / 60 : clock.getDelta();
+    const rawDt = isScreenshotMode ? 1 / 60 : clock.getDelta();
+    // Clamp delta time to maximum 33ms (eliminates physics stutters / spikes on mobile)
+    const dt = Math.min(rawDt, 0.0333);
     const elapsedTime =
       (isScreenshotMode ? screenshotFrameCounter / 60 : clock.getElapsedTime()) +
       requestedTimeOffset;
@@ -2765,7 +3292,10 @@ async function initApp() {
       activeCameraMode === 6 ||
       activeCameraMode === 9;
     const activeDofScale = dofScale > 0.01 && !isRoomCam ? dofScale : 0.0;
-    bokehPass.enabled = true;
+    // On mobile devices, BokehPass is only enabled if the user explicitly turns up the DOF slider
+    // This saves 48 texture taps per pixel and guarantees a smooth 60 FPS on mobile!
+    const shouldEnableBokeh = (!isMobileDevice || (settings.dofStrength > 0.05)) && activeDofScale > 0.01;
+    bokehPass.enabled = shouldEnableBokeh;
     if (bokehPass.uniforms) {
       bokehPass.uniforms['focus'].value = currentFocusDistance;
       bokehPass.uniforms['aperture'].value = isRoomCam ? 0.0 :

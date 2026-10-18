@@ -9,6 +9,8 @@
     "moduleDetection": "force",
     "allowJs": true,
     "checkJs": false,
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
     "noEmit": true
   },
   "include": ["src"]

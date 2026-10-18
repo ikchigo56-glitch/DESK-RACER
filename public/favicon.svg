@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Radial Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#14223d"/>
+      <stop offset="55%" stop-color="#0c1222"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </radialGradient>
+
+    <!-- Outer Rim Gradient: Electric Cyan to Golden Sunset -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="48%" stop-color="#38bdf8"/>
+      <stop offset="75%" stop-color="#ffd27d"/>
+      <stop offset="100%" stop-color="#ff9900"/>
+    </linearGradient>
+
+    <!-- Kart Body Gradient -->
+    <linearGradient id="kartBodyGrad" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#e0f2fe"/>
+      <stop offset="70%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#ffe8a3"/>
+      <stop offset="50%" stop-color="#ffaa44"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Cyan Neon Glow Filter -->
+    <filter id="neonCyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur1"/>
+      <feGaussianBlur stdDeviation="24" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Gold Glow Filter -->
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Drop Shadow for Chassis -->
+    <filter id="kartShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#000000" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+
+  <!-- Base App Icon Tile (iOS Squircle / Rounded Rect) -->
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="url(#bgGlow)"/>
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="none" stroke="url(#rimGrad)" stroke-width="7" opacity="0.95"/>
+  <rect x="23" y="23" width="466" height="466" rx="101" ry="101" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+
+  <!-- Subtle Speed Grid / Track Horizon Curves in Background -->
+  <g opacity="0.22" stroke="#00e5ff" stroke-width="1.8" fill="none">
+    <ellipse cx="256" cy="410" rx="220" ry="60"/>
+    <ellipse cx="256" cy="430" rx="280" ry="76"/>
+    <line x1="80" y1="460" x2="200" y2="340"/>
+    <line x1="432" y1="460" x2="312" y2="340"/>
+  </g>
+
+  <!-- Speed Trail / Afterburner Neon Streaks -->
+  <g filter="url(#neonCyanGlow)" opacity="0.88">
+    <!-- Left Trail -->
+    <path d="M120 375 C160 365, 195 352, 230 342" stroke="#00f0ff" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M90 395 C145 385, 200 370, 240 358" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <!-- Right Trail -->
+    <path d="M392 375 C352 365, 317 352, 282 342" stroke="#00f0ff" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M422 395 C367 385, 312 370, 272 358" stroke="#38bdf8" stroke-width="5" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- Kart Ground Shadow -->
+  <ellipse cx="256" cy="384" rx="145" ry="34" fill="#000000" opacity="0.78" filter="blur(8px)"/>
+
+  <!-- Racing Kart Main Group (Tilted Forward 3/4 Isometric Speed View) -->
+  <g filter="url(#kartShadow)">
+    <!-- Rear Racing Wing / Spoiler -->
+    <path d="M142 216 L370 216 L392 238 L120 238 Z" fill="url(#goldGrad)" filter="url(#goldGlow)"/>
+    <!-- Spoiler Endplates -->
+    <path d="M116 206 L144 206 L138 252 L110 252 Z" fill="#ffd27d"/>
+    <path d="M368 206 L396 206 L402 252 L374 252 Z" fill="#ffd27d"/>
+    <!-- Spoiler Struts -->
+    <path d="M198 238 L208 274 L222 274 L212 238 Z" fill="#334155"/>
+    <path d="M300 238 L290 274 L304 274 L314 238 Z" fill="#334155"/>
+
+    <!-- Rear Wheels (Wide slick racing tires) -->
+    <g fill="#0f172a" stroke="#1e293b" stroke-width="3">
+      <!-- Left Rear Wheel -->
+      <rect x="110" y="272" width="44" height="88" rx="14" transform="rotate(-6 132 316)"/>
+      <ellipse cx="132" cy="316" rx="12" ry="24" fill="#0284c7" opacity="0.8"/>
+      <!-- Right Rear Wheel -->
+      <rect x="358" y="272" width="44" height="88" rx="14" transform="rotate(6 380 316)"/>
+      <ellipse cx="380" cy="316" rx="12" ry="24" fill="#0284c7" opacity="0.8"/>
+    </g>
+
+    <!-- Side Pods with Golden Air Intakes -->
+    <!-- Left Pod -->
+    <path d="M152 284 L204 280 L208 348 L148 344 Z" fill="#0369a1"/>
+    <path d="M150 292 L172 292 L168 336 L146 336 Z" fill="url(#goldGrad)"/>
+    <!-- Right Pod -->
+    <path d="M360 284 L308 280 L304 348 L364 344 Z" fill="#0369a1"/>
+    <path d="M362 292 L340 292 L344 336 L366 336 Z" fill="url(#goldGrad)"/>
+
+    <!-- Main Aerodynamic Body Chassis (Center Monocoque) -->
+    <path d="M212 250 L300 250 L318 338 L302 384 L256 398 L210 384 L194 338 Z" fill="url(#kartBodyGrad)"/>
+    <!-- High-gloss highlights -->
+    <path d="M228 256 L284 256 L298 334 L256 350 L214 334 Z" fill="#ffffff" opacity="0.28"/>
+
+    <!-- Front Nosecone & Splitter -->
+    <path d="M172 366 L340 366 L356 394 L156 394 Z" fill="#0284c7"/>
+    <path d="M156 394 L356 394 L336 408 L176 408 Z" fill="url(#goldGrad)" filter="url(#goldGlow)"/>
+
+    <!-- Front Wheels -->
+    <g fill="#0f172a" stroke="#1e293b" stroke-width="2.5">
+      <rect x="134" y="340" width="30" height="60" rx="9" transform="rotate(-8 149 370)"/>
+      <rect x="348" y="340" width="30" height="60" rx="9" transform="rotate(8 363 370)"/>
+    </g>
+
+    <!-- Driver Helmet & Cockpit (Cyan Glowing Visor) -->
+    <!-- Cockpit Opening -->
+    <ellipse cx="256" cy="292" rx="36" ry="46" fill="#090d16"/>
+    <!-- Steering Wheel Top Arc -->
+    <path d="M236 322 C246 314, 266 314, 276 322" stroke="#64748b" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <!-- Helmet Shell -->
+    <circle cx="256" cy="282" r="28" fill="#f8fafc"/>
+    <circle cx="256" cy="282" r="28" fill="none" stroke="url(#goldGrad)" stroke-width="3"/>
+    <!-- Visor (Electric Cyan Reflective) -->
+    <path d="M236 280 C242 272, 270 272, 276 280 C278 290, 274 296, 256 296 C238 296, 234 290, 236 280 Z" fill="#00f0ff" filter="url(#neonCyanGlow)"/>
+    <path d="M242 280 C248 276, 264 276, 270 280" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+
+    <!-- Daniel Tech "DT" Racing Emblem on Nosecone -->
+    <g transform="translate(256, 362) scale(0.92)">
+      <!-- Hex Shield Badge -->
+      <polygon points="0,-18 20,-8 20,12 0,22 -20,12 -20,-8" fill="#090d16" stroke="url(#goldGrad)" stroke-width="2.5"/>
+      <!-- DT Text Monogram -->
+      <text x="0" y="7" font-family="'Orbitron', sans-serif" font-weight="900" font-size="15" fill="#00f0ff" text-anchor="middle" letter-spacing="1">DT</text>
+    </g>
+  </g>
+
+  <!-- Dynamic Starburst / Lens Flare Highlight Top-Right of Kart -->
+  <g transform="translate(372, 206)" filter="url(#goldGlow)">
+    <circle cx="0" cy="0" r="5" fill="#ffffff"/>
+    <line x1="-18" y1="0" x2="18" y2="0" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="0" y1="-18" x2="0" y2="18" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(140, 206)" filter="url(#neonCyanGlow)">
+    <circle cx="0" cy="0" r="4" fill="#ffffff"/>
+    <line x1="-12" y1="0" x2="12" y2="0" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+    <line x1="0" y1="-12" x2="0" y2="12" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

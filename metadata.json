@@ -1,6 +1,6 @@
 {
   "name": "Desk Racer",
-  "description": " racing game in Three.js by Daniel_Tech",
+  "description": "Jeu de course de micro-kart 3D Three.js créé par DANIEL TECH, développeur de jeux vidéo.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

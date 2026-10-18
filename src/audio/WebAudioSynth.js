@@ -311,40 +311,43 @@ export function createDeskRacerHybridAudio(options = {}) {
    * Triggers a clean, subtle cylinder stumble + exhaust pop without cluttering
    * `kart_cruise_mid_loop.wav`.
    */
+  /**
+   * Triggers a smooth, clean exhaust acoustic rumble without crackles or clicks.
+   */
   function fireSingleRealSputterPop(
-      delayS = 0.0, intensity = 1.0, mode = 'idle') {
+      delayS = 0.0, intensity = 0.6, mode = 'idle') {
     if (!ctx || !enabled || ctx.state !== 'running') return;
     const t0 = ctx.currentTime + delayS;
     const isIdleStumble = mode === 'idle';
     const isOverrunBackfire = mode === 'overrun';
-    const v = 0.92 + 0.16 * Math.random();
+    const v = 0.94 + 0.12 * Math.random();
 
+    // Gentle, click-free ducking with soft 40ms envelope (no 8ms audio clicks)
     if (misfireDuckGain) {
-      misfireDuckGain.gain.setValueAtTime(1.0, t0);
-      misfireDuckGain.gain.linearRampToValueAtTime(
-          isIdleStumble ? 0.55 : 0.42, t0 + 0.008);
-      misfireDuckGain.gain.linearRampToValueAtTime(1.0, t0 + 0.036);
+      misfireDuckGain.gain.setTargetAtTime(
+          isIdleStumble ? 0.85 : 0.75, t0, 0.025);
+      misfireDuckGain.gain.setTargetAtTime(1.0, t0 + 0.05, 0.035);
     }
 
-    const tPop = t0 + 0.012;
-    const dur = isOverrunBackfire ? 0.050 : 0.038;
+    const tPop = t0 + 0.015;
+    const dur = isOverrunBackfire ? 0.065 : 0.048;
 
     const thumpOsc = ctx.createOscillator();
     const thumpGain = ctx.createGain();
     thumpOsc.type = 'sine';
-    thumpOsc.frequency.setValueAtTime((isIdleStumble ? 76.0 : 98.0) * v, tPop);
+    thumpOsc.frequency.setValueAtTime((isIdleStumble ? 68.0 : 86.0) * v, tPop);
     thumpOsc.frequency.exponentialRampToValueAtTime(
-        (isIdleStumble ? 40.0 : 45.0) * v, tPop + dur);
+        (isIdleStumble ? 38.0 : 42.0) * v, tPop + dur);
 
-    const peakGain = Math.min(0.30, (isIdleStumble ? 0.12 : 0.18) * intensity);
+    const peakGain = Math.min(0.18, (isIdleStumble ? 0.08 : 0.12) * intensity);
     thumpGain.gain.setValueAtTime(0.0001, tPop);
-    thumpGain.gain.linearRampToValueAtTime(peakGain, tPop + 0.003);
+    thumpGain.gain.linearRampToValueAtTime(peakGain, tPop + 0.012);
     thumpGain.gain.exponentialRampToValueAtTime(0.0001, tPop + dur);
 
     thumpOsc.connect(thumpGain);
     thumpGain.connect(masterGain);
     thumpOsc.start(tPop);
-    thumpOsc.stop(tPop + dur + 0.01);
+    thumpOsc.stop(tPop + dur + 0.02);
 
     if ((isOverrunBackfire || isIdleStumble) &&
         oneShotBuffers.sputter.length > 0) {
@@ -353,18 +356,18 @@ export function createDeskRacerHybridAudio(options = {}) {
         : oneShotBuffers.sputter[
             1 + Math.floor(Math.random() * Math.max(1, oneShotBuffers.sputter.length - 1))
           ] || oneShotBuffers.sputter[oneShotBuffers.sputter.length - 1];
-      const sliceDur = 0.16 + 0.10 * Math.random();
+      const sliceDur = 0.14 + 0.08 * Math.random();
       const maxOffset = Math.max(0.0, buf.duration - sliceDur - 0.05);
       const offset = Math.random() * maxOffset;
 
       const src = ctx.createBufferSource();
       src.buffer = buf;
-      src.playbackRate.value = 0.94 + 0.12 * Math.random();
+      src.playbackRate.value = 0.94 + 0.10 * Math.random();
 
       const g = ctx.createGain();
-      const gPeak = Math.min(0.55, (isIdleStumble ? 0.22 : 0.32) * intensity);
+      const gPeak = Math.min(0.24, (isIdleStumble ? 0.12 : 0.18) * intensity);
       g.gain.setValueAtTime(0.0001, tPop);
-      g.gain.linearRampToValueAtTime(gPeak, tPop + 0.005);
+      g.gain.linearRampToValueAtTime(gPeak, tPop + 0.018);
       g.gain.exponentialRampToValueAtTime(0.0001, tPop + sliceDur);
 
       src.connect(g);

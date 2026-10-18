@@ -3,11 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Desk Racer</title>
+    <title>Desk Racer — Par DANIEL TECH (Développeur de jeux vidéo)</title>
+    <meta name="description" content="Desk Racer — Jeu de course de micro-kart 3D haute fidélité sur bureau créé par DANIEL TECH, développeur de jeux vidéo." />
+    <meta property="og:title" content="Desk Racer — Par DANIEL TECH" />
+    <meta property="og:description" content="Jeu de course de micro-kart 3D Three.js créé par DANIEL TECH, développeur de jeux vidéo." />
+    <!-- Favicon & Apple Touch Icon Links -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Desk Racer" />
+    <meta name="theme-color" content="#00f0ff" />
+    <meta property="og:image" content="/icon-512.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Orbitron:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Press+Start+2P&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Arabic:wght@600;700;800&family=Orbitron:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Press+Start+2P&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
@@ -16,17 +32,17 @@
     <!-- 3D WebGL Canvas Mount -->
     <div id="canvas-container"></div>
 
-    <!-- Helmet Visor Overlay (Visible in Camera 2: Helmet Visor POV — Clean, no top chip) -->
+    <!-- Helmet Visor Overlay (Visible in Camera 2: Helmet Visor POV) -->
     <div id="helmet-visor-overlay" class="hidden">
       <div class="visor-vignette"></div>
     </div>
 
-    <!-- Subtle Corner Vignette Behind HUD Elements (Visible in Camera Views 1 & 2) -->
+    <!-- Subtle Corner Vignette Behind HUD Elements -->
     <div id="hud-corner-vignette"></div>
 
     <!-- Streamlined HUD Overlay -->
     <div id="hud-root">
-      <!-- Top Row: Clickable "Desk Racer" Title (Top-Left) & Lap Counter/Timer + Mute Icon (Top-Right) -->
+      <!-- Top Row: Clickable "Desk Racer" Title & Developer Subtitle (Top-Left) & Lap Counter/Timer + Settings & Mute Icons (Top-Right) -->
       <header class="hud-top-bar">
         <div class="hud-top-left-stack">
           <div
@@ -34,8 +50,21 @@
             class="hud-brand-title"
             role="button"
             tabindex="0"
-            title="Click to open Controls &amp; Camera Menu"
-          >Desk Racer</div>
+            title="Desk Racer"
+          >
+            <img src="/favicon.svg" alt="" width="32" height="32" class="hud-brand-icon" />
+            <span>Desk Racer</span>
+          </div>
+          <div
+            id="hud-author-subtitle"
+            class="hud-author-subtitle"
+            role="button"
+            tabindex="0"
+            title="Cliquez pour voir les crédits développeur"
+          >
+            <span class="author-dot"></span>
+            <span id="hud-author-text">PAR DANIEL TECH · DÉVELOPPEUR DE JEUX VIDÉO</span>
+          </div>
         </div>
 
         <div class="hud-settings-anchor">
@@ -43,11 +72,26 @@
             <!-- Top-Right Lap Counter & Lap Timer (Visible in 1P & 2P Views) -->
             <div id="hud-lap-widget" class="hud-lap-widget">
               <div id="hud-lap-header" class="hud-lap-header">
-                LAP <span id="hud-lap-curr" class="hud-lap-curr">1</span>/3
+                <span id="hud-lap-label">LAP</span> <span id="hud-lap-curr" class="hud-lap-curr">1</span>/3
               </div>
               <div id="hud-lap-timer" class="hud-lap-timer" aria-label="00:00.00"><span class="timer-digit" id="lap-d0">0</span><span class="timer-digit" id="lap-d1">0</span><span class="timer-sep">:</span><span class="timer-digit" id="lap-d2">0</span><span class="timer-digit" id="lap-d3">0</span><span class="timer-sep">.</span><span class="timer-digit" id="lap-d4">0</span><span class="timer-digit" id="lap-d5">0</span></div>
               <div id="hud-lap-split" class="hud-lap-split hidden"></div>
             </div>
+
+            <!-- Top-Right Settings / Langue Button -->
+            <button
+              id="btn-open-settings"
+              class="hud-settings-btn"
+              type="button"
+              aria-label="Paramètres / Settings"
+              title="Paramètres &amp; Langues (O)"
+            >
+              <svg class="settings-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span id="hud-lang-badge" class="hud-lang-badge">FR</span>
+            </button>
 
             <!-- Top-Right Mute / Unmute Sound Icon Button -->
             <button
@@ -77,55 +121,191 @@
       <!-- Welcome & Controls Dialog (Shown on Launch & When Clicking "Desk Racer") -->
       <div id="welcome-dialog-overlay" class="welcome-dialog-overlay">
         <div class="welcome-dialog-card" role="dialog" aria-labelledby="welcome-title">
-          <div class="welcome-eyebrow">DESKTOP CIRCUIT · 3 LAPS</div>
+          <div id="welcome-eyebrow" class="welcome-eyebrow">CIRCUIT DE BUREAU · 3 TOURS</div>
           <h1 id="welcome-title" class="welcome-title">DESK RACER</h1>
+
+          <!-- Prominent Developer Credit Badge on Welcome Dialog -->
+          <div id="welcome-author-badge" class="welcome-author-badge" role="button" tabindex="0" title="Développeur : DANIEL TECH">
+            <span class="badge-dot"></span>
+            <span id="welcome-author-text">CRÉÉ PAR DANIEL TECH · DÉVELOPPEUR DE JEUX VIDÉO</span>
+          </div>
+
+          <!-- Quick Language Switcher directly on the Welcome Dialog -->
+          <div class="welcome-lang-row">
+            <span class="lang-row-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </span>
+            <div id="welcome-lang-pills" class="welcome-lang-pills"></div>
+          </div>
 
           <div class="welcome-controls-grid">
             <!-- WASD Controls -->
             <div class="welcome-control-block">
-              <div class="welcome-control-label">CONTROLS</div>
+              <div id="welcome-ctrl-label" class="welcome-control-label">COMMANDES</div>
               <div class="control-keys-list" aria-label="WASD Controls">
                 <div class="control-key-row">
                   <div class="control-kbd-pair">
                     <kbd class="welcome-key">W</kbd>
                   </div>
-                  <span>ACCELERATE</span>
+                  <span id="txt-key-accel">ACCÉLÉRER</span>
                 </div>
                 <div class="control-key-row">
                   <div class="control-kbd-pair">
                     <kbd class="welcome-key">A</kbd>
                     <kbd class="welcome-key">D</kbd>
                   </div>
-                  <span>STEER</span>
+                  <span id="txt-key-steer">DIRIGER</span>
                 </div>
                 <div class="control-key-row">
                   <div class="control-kbd-pair">
                     <kbd class="welcome-key">S</kbd>
                   </div>
-                  <span>BRAKE</span>
+                  <span id="txt-key-brake">FREINER</span>
                 </div>
               </div>
             </div>
 
             <!-- Game Views 1-4 -->
             <div class="welcome-control-block">
-              <div class="welcome-control-label">GAME VIEWS</div>
+              <div id="welcome-views-label" class="welcome-control-label">VUES DU JEU</div>
               <div class="cam-keys-list">
-                <div class="cam-key-row cam-pill active" data-cam="1"><kbd class="welcome-key welcome-key-cyan">1</kbd><span>CHASE VIEW</span></div>
-                <div class="cam-key-row cam-pill" data-cam="2"><kbd class="welcome-key welcome-key-cyan">2</kbd><span>COCKPIT</span></div>
-                <div class="cam-key-row cam-pill" data-cam="3"><kbd class="welcome-key welcome-key-cyan">3</kbd><span>FULL DESK VIEW</span></div>
-                <div class="cam-key-row cam-pill" data-cam="4"><kbd class="welcome-key welcome-key-cyan">4</kbd><span>DRONE VIEW</span></div>
+                <div class="cam-key-row cam-pill active" data-cam="1"><kbd class="welcome-key welcome-key-cyan">1</kbd><span id="txt-cam-1">VUE POURSUITE</span></div>
+                <div class="cam-key-row cam-pill" data-cam="2"><kbd class="welcome-key welcome-key-cyan">2</kbd><span id="txt-cam-2">COCKPIT</span></div>
+                <div class="cam-key-row cam-pill" data-cam="3"><kbd class="welcome-key welcome-key-cyan">3</kbd><span id="txt-cam-3">VUE D'ENSEMBLE</span></div>
+                <div class="cam-key-row cam-pill" data-cam="4"><kbd class="welcome-key welcome-key-cyan">4</kbd><span id="txt-cam-4">VUE DRONE</span></div>
               </div>
             </div>
           </div>
 
           <div class="welcome-footer-row">
             <button id="btn-welcome-start" class="welcome-start-btn" type="button">
-              <span id="welcome-start-text" class="welcome-start-text">START TIME TRIAL</span>
-              <kbd id="welcome-enter-kbd" class="welcome-enter-kbd">ENTER ↵</kbd>
+              <span id="welcome-start-text" class="welcome-start-text">COMMENCER LA COURSE</span>
+              <kbd id="welcome-enter-kbd" class="welcome-enter-kbd">ENTRÉE ↵</kbd>
               <span class="welcome-btn-progress-track" aria-hidden="true">
                 <span id="welcome-btn-progress-fill" class="welcome-btn-progress-fill"></span>
               </span>
+            </button>
+            <button id="btn-welcome-settings" class="welcome-settings-aux-btn" type="button" title="Ouvrir les paramètres">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              <span id="welcome-settings-label">PARAMÈTRES</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & Developer Credits Modal Dialog (Opened via ⚙️ icon or "Paramètres") -->
+      <div id="settings-dialog-overlay" class="welcome-dialog-overlay settings-dialog-overlay hidden" role="dialog" aria-labelledby="settings-dialog-title">
+        <div class="welcome-dialog-card settings-dialog-card">
+          <!-- Header with Close button -->
+          <div class="settings-header-row">
+            <div>
+              <div id="settings-dialog-eyebrow" class="welcome-eyebrow">DESK RACER · CONFIGURATION</div>
+              <h2 id="settings-dialog-title" class="settings-title">PARAMÈTRES</h2>
+            </div>
+            <button id="btn-close-settings-x" class="settings-close-x-btn" type="button" aria-label="Fermer les paramètres">✕</button>
+          </div>
+
+          <!-- Section 1: Developer Credits - DANIEL TECH -->
+          <div class="settings-section dev-credits-section">
+            <div class="settings-section-header">
+              <span class="settings-section-icon">🏆</span>
+              <span id="txt-dev-section-title" class="settings-section-title">DÉVELOPPEUR DU JEU</span>
+            </div>
+            <div class="dev-profile-card">
+              <div class="dev-profile-header">
+                <div class="dev-avatar">
+                  <img src="/apple-touch-icon.png" alt="Daniel Tech" class="dev-avatar-img" />
+                </div>
+                <div class="dev-profile-titles">
+                  <div class="dev-official-badge">
+                    <span class="badge-star">★</span>
+                    <span id="txt-dev-badge-official">CONCEPTEUR &amp; DÉVELOPPEUR DU JEU</span>
+                  </div>
+                  <h3 id="txt-dev-name" class="dev-author-name">DANIEL TECH</h3>
+                  <div id="txt-dev-role" class="dev-author-role">Développeur de jeux vidéo</div>
+                </div>
+              </div>
+              <div class="dev-statement-box">
+                <p id="txt-dev-statement" class="dev-statement-text">
+                  Ce jeu Desk Racer a été intégralement conçu, programmé et réalisé par moi, DANIEL TECH, développeur de jeux vidéo. Passionné de simulations physiques 3D en temps réel et de mécaniques de pilotage immersives, j'ai développé cette expérience complète de course micro-kart à l'échelle 1:87 sur bureau.
+                </p>
+              </div>
+              <div class="dev-tech-pills">
+                <span class="tech-tag">WebGL Three.js 3D</span>
+                <span class="tech-tag">Rapier3D Physics</span>
+                <span class="tech-tag">Cinematic Bokeh DoF</span>
+                <span class="tech-tag">Web Audio API Synth</span>
+                <span class="tech-tag">HO 1:87 Scale</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Language Selection -->
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <span class="settings-section-icon">🌐</span>
+              <span id="txt-lang-section-title" class="settings-section-title">CHOIX DE LA LANGUE</span>
+            </div>
+            <div id="settings-lang-grid" class="settings-lang-grid">
+              <!-- Dynamically populated language buttons -->
+            </div>
+          </div>
+
+          <!-- Section 3: Gameplay & Audio Sliders -->
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <span class="settings-section-icon">🎮</span>
+              <span id="txt-gameplay-section-title" class="settings-section-title">OPTIONS DE JEU &amp; AUDIO</span>
+            </div>
+            <div class="settings-controls-grid">
+              <!-- Sound Toggle -->
+              <div class="settings-row-item">
+                <div class="settings-row-info">
+                  <span id="txt-opt-audio" class="settings-item-label">Effets sonores &amp; moteur</span>
+                  <span class="settings-item-sub">Synthèse procédurale Web Audio</span>
+                </div>
+                <button id="btn-settings-toggle-sound" class="settings-toggle-btn active" type="button">
+                  <span id="txt-settings-sound-state">ACTIF</span>
+                </button>
+              </div>
+
+              <!-- Top Speed Multiplier Slider -->
+              <div class="settings-row-item slider-item">
+                <div class="settings-slider-header">
+                  <span id="txt-opt-topspeed" class="settings-item-label">Vitesse maximale du kart</span>
+                  <span id="val-topspeed-modal" class="settings-slider-val">1.00x</span>
+                </div>
+                <input id="slider-topspeed-modal" class="hud-slider" type="range" min="0.6" max="1.8" step="0.05" value="1.0" />
+              </div>
+
+              <!-- Depth of Field Slider -->
+              <div class="settings-row-item slider-item">
+                <div class="settings-slider-header">
+                  <span id="txt-opt-dof" class="settings-item-label">Flou cinématique (Bokeh)</span>
+                  <span id="val-dof-modal" class="settings-slider-val">0.35x</span>
+                </div>
+                <input id="slider-dof-modal" class="hud-slider" type="range" min="0.0" max="1.5" step="0.05" value="0.35" />
+              </div>
+
+              <!-- Sunbeams / Golden Hour Slider -->
+              <div class="settings-row-item slider-item">
+                <div class="settings-slider-header">
+                  <span id="txt-opt-sun" class="settings-item-label">Lumière dorée du soleil</span>
+                  <span id="val-sun-modal" class="settings-slider-val">1.00x</span>
+                </div>
+                <input id="slider-sun-modal" class="hud-slider" type="range" min="0.0" max="2.0" step="0.05" value="1.0" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Action Button -->
+          <div class="settings-footer-row">
+            <button id="btn-close-settings-footer" class="welcome-start-btn settings-close-btn" type="button">
+              <span id="txt-close-settings" class="welcome-start-text">FERMER &amp; REPRENDRE</span>
+              <kbd class="welcome-enter-kbd">ESC</kbd>
             </button>
           </div>
         </div>
@@ -136,19 +316,22 @@
 
       <div id="hud-finish-overlay" class="welcome-dialog-overlay hud-finish-overlay hidden" role="dialog" aria-labelledby="hud-finish-title">
         <div class="welcome-dialog-card finish-dialog-card">
-          <div class="welcome-eyebrow">DESKTOP CIRCUIT · 3 LAPS COMPLETE</div>
-          <h2 id="hud-finish-title" class="hud-finish-title">FINISH</h2>
+          <div id="hud-finish-eyebrow" class="welcome-eyebrow">CIRCUIT DE BUREAU · 3 TOURS COMPLÉTÉS</div>
+          <h2 id="hud-finish-title" class="hud-finish-title">ARRIVÉE</h2>
           <div id="hud-finish-time" class="hud-finish-time">00:00.00</div>
-          <div id="hud-finish-sub" class="hud-finish-sub">BEST LAP 00:00.00</div>
+          <div id="hud-finish-sub" class="hud-finish-sub">MEILLEUR TOUR 00:00.00</div>
           <div class="finish-actions-row">
             <button id="btn-finish-race-again" class="welcome-start-btn finish-action-btn" type="button">
-              <span class="welcome-start-text">RACE AGAIN</span>
-              <kbd class="welcome-enter-kbd">ENTER ↵</kbd>
+              <span id="txt-finish-race-again" class="welcome-start-text">REJOUER</span>
+              <kbd class="welcome-enter-kbd">ENTRÉE ↵</kbd>
             </button>
             <button id="btn-finish-autopilot" class="welcome-start-btn finish-action-btn finish-autopilot-btn" type="button">
-              <span class="welcome-start-text">AUTO-PILOT</span>
+              <span id="txt-finish-autopilot" class="welcome-start-text">PILOTE AUTO</span>
               <kbd class="welcome-enter-kbd">P</kbd>
             </button>
+          </div>
+          <div id="hud-finish-signature" class="finish-developer-signature">
+            Jeu conçu et développé par DANIEL TECH, développeur de jeux vidéo
           </div>
         </div>
       </div>
@@ -189,13 +372,13 @@
 
           <!-- Italic KM/H label & Large Bold Italic Speed Readout tucked inside the angled bar -->
           <div class="speedo-readout-group">
-            <div class="speedo-unit-label">KM/H</div>
+            <div id="hud-unit-kmh" class="speedo-unit-label">KM/H</div>
             <div id="hud-scale-speed" class="speedo-digits">0</div>
           </div>
         </div>
       </footer>
 
-      <!-- Mobile Bottom Touch Controls Row (Visible in Mobile View after clicking Start Time Trial) -->
+      <!-- Mobile Bottom Touch Controls Row -->
       <div
         id="mobile-touch-controls"
         class="mobile-touch-controls hidden"
@@ -217,7 +400,7 @@
                 <polyline points="13 17 8 12 13 7"></polyline>
                 <polyline points="18 17 13 12 18 7" opacity="0.45"></polyline>
               </svg>
-              <span class="mobile-ctrl-label">LEFT</span>
+              <span id="txt-touch-left" class="mobile-ctrl-label">GAUCHE</span>
             </span>
           </button>
 
@@ -234,7 +417,61 @@
                 <polyline points="11 17 16 12 11 7"></polyline>
                 <polyline points="6 17 11 12 6 7" opacity="0.45"></polyline>
               </svg>
-              <span class="mobile-ctrl-label">RIGHT</span>
+              <span id="txt-touch-right" class="mobile-ctrl-label">DROITE</span>
+            </span>
+          </button>
+        </div>
+
+        <!-- Center Utility Actions for Mobile (Respawn, Camera Toggle, Autopilot) -->
+        <div class="mobile-ctrl-cluster mobile-util-cluster" role="group" aria-label="Quick Actions">
+          <button
+            id="btn-touch-respawn"
+            class="mobile-ctrl-btn mobile-ctrl-util"
+            type="button"
+            aria-label="Reset Kart (R)"
+            title="Reset Kart (R)"
+          >
+            <span class="mobile-ctrl-inner">
+              <svg class="mobile-ctrl-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+              </svg>
+              <span id="txt-touch-respawn" class="mobile-ctrl-label-sm">REMISE</span>
+            </span>
+          </button>
+
+          <button
+            id="btn-touch-cam"
+            class="mobile-ctrl-btn mobile-ctrl-util"
+            type="button"
+            aria-label="Switch Camera (1-4)"
+            title="Switch Camera (1-4)"
+          >
+            <span class="mobile-ctrl-inner">
+              <svg class="mobile-ctrl-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              <span id="txt-touch-cam" class="mobile-ctrl-label-sm">CAMÉRA</span>
+            </span>
+          </button>
+
+          <button
+            id="btn-touch-autopilot"
+            class="mobile-ctrl-btn mobile-ctrl-util"
+            type="button"
+            aria-label="Toggle Autopilot (P)"
+            title="Toggle Autopilot (P)"
+          >
+            <span class="mobile-ctrl-inner">
+              <svg class="mobile-ctrl-svg-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                <circle cx="12" cy="5" r="2"></circle>
+                <path d="M12 7v4"></path>
+                <line x1="8" y1="16" x2="8" y2="16"></line>
+                <line x1="16" y1="16" x2="16" y2="16"></line>
+              </svg>
+              <span id="txt-touch-auto" class="mobile-ctrl-label-sm">AUTO</span>
             </span>
           </button>
         </div>
@@ -254,7 +491,7 @@
                 <polyline points="17 13 12 8 7 13"></polyline>
                 <polyline points="17 18 12 13 7 18" opacity="0.45"></polyline>
               </svg>
-              <span class="mobile-ctrl-label">ACCEL</span>
+              <span id="txt-touch-accel" class="mobile-ctrl-label">ACCÉL</span>
             </span>
           </button>
 
@@ -271,7 +508,7 @@
                 <polyline points="7 8 12 13 17 8"></polyline>
                 <line x1="7" y1="17" x2="17" y2="17"></line>
               </svg>
-              <span class="mobile-ctrl-label">BRAKE</span>
+              <span id="txt-touch-brake" class="mobile-ctrl-label">FREIN</span>
             </span>
           </button>
         </div>
